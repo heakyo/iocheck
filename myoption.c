@@ -324,6 +324,14 @@ int parse_cmdline(struct io_check *check, int argc, char **argv)
 	}
 	close(fd);
 
+	if (FIXED_BZ == check->bz_method) {
+		if (check->fix_bz < check->blkdev_logicbz || check->fix_bz % check->blkdev_logicbz) {
+			printf("Option --block-size=? must be large-or-equal and integral multiple of %s logical block size %d\n",
+				check->is_rawdev ? "raw block device" : "filesystem", check->blkdev_logicbz);
+			return 1;
+		}
+	}
+
 	if (check->nthread <= 0|| check->nthread > 256) {
 		printf("Missing or invalid --num-threads=? option %d, invalid is [1, 256]\n", check->nthread);
 		return 1;
