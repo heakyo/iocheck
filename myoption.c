@@ -178,11 +178,45 @@ static void get_optstr(struct option *long_opt, char *optstr, int optstr_size)
 	}
 }
 
+static char *get_strsize(char *str, off_t *size)
+{
+	char *p, *endptr;
+	off_t tmp;
+
+	p = str;
+	*size = 0;
+
+	while (1) {
+		int shift = 1;
+
+		tmp = strtoul(p, &endptr, 10);
+
+		if ('k' == endptr[0] || 'K' == endptr[0])
+			tmp *= 1024;
+		else if ('m' == endptr[0] || 'M' == endptr[0])
+			tmp *= (1024 * 1024);
+		else if ('g' == endptr[0] || 'G' == endptr[0])
+			tmp *= (1024 * 1024 * 1024);
+		else
+			shift = 0;
+
+		*size += tmp;
+
+		p = endptr + shift;
+		while(*p == ' ') p++;
+		if (*p != '+')
+			return p;
+		else
+			p++;
+		while(*p == ' ') p++;
+	}
+}
+
 int parse_cmdline(struct io_check *check, int argc, char **argv)
 {
 	int opt;
 	char optstr[256];
-	char *endptr;
+	char *endptr, *headptr;
 
 	if (argc <= 1) {
 		usage();
@@ -211,6 +245,15 @@ int parse_cmdline(struct io_check *check, int argc, char **argv)
 					check->fix_bz *= (1024 * 1024);
 
 				check->bz_method = FIXED_BZ;
+			}
+			break;
+
+		case OPT_FILESIZE:
+			if (!strncmp(optarg, "auto", 4)) {
+				check->automode = strdup(optarg);
+			} else 	if ('[' != optarg[0]) {
+				headptr = optarg;
+				get_strsize(headptr, &check->uniq_filesize);
 			}
 			break;
 

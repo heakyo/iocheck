@@ -22,6 +22,9 @@ struct io_check {
 	int bz_method;
 	int fix_bz;
 
+	off_t uniq_filesize;
+	char *automode;
+
 	int running_count;
 	char running_char[4];
 
