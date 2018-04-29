@@ -157,11 +157,40 @@ static void usage(void)
 		"\t\tDisable dynamic allocate data memory for each data transfer.\n");
 }
 
+static void get_optstr(struct option *long_opt, char *optstr, int optstr_size)
+{
+	int c = 0;
+	struct option *opt;
+
+	memset(optstr, 0x00, optstr_size);
+	optstr[c++] = ':';
+
+	for (opt = long_opt; NULL != opt->name; opt++) {
+		optstr[c++] = opt->val;
+
+		if (required_argument == opt->has_arg) {
+			optstr[c++] = ':';
+		} else if (optional_argument == opt->has_arg) {
+			optstr[c++] = ':';
+			optstr[c++] = ':';
+		}
+		assert(c < optstr_size);
+	}
+}
+
 int parse_cmdline(struct io_check *check, int argc, char **argv)
 {
+	int opt;
+	char optstr[256];
+
 	if (argc <= 1) {
 		usage();
 		exit(EXIT_FAILURE);
+	}
+
+	get_optstr(lopts, optstr, sizeof(optstr));
+	while ((opt = getopt_long_only(argc, argv, optstr, lopts, NULL)) != -1) {
+
 	}
 
 	return 0;

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
+#include <assert.h>
 
 #define	CHECK_CONTEXT_TAG	"iocheck-context-file"
 
