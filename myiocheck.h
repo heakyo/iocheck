@@ -6,6 +6,13 @@
 #include <string.h>
 #include <getopt.h>
 #include <assert.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
+#include <linux/hdreg.h>
+#include <linux/fs.h>
 #include <linux/limits.h>
 
 #define	CHECK_CONTEXT_TAG	"iocheck-context-file"
@@ -14,6 +21,13 @@ struct io_check {
 	char id[64];
 
 	char target[PATH_MAX];
+	char data_directory[PATH_MAX];
+	char context_filename[PATH_MAX];
+
+	int is_rawdev;
+	int blkdev_logicbz;	// io_submit must be align
+	int raw_blkdev_logicbz;
+	off_t free_space;
 	int nthread;
 
 #define	INVALID_BZ	0

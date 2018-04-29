@@ -214,9 +214,10 @@ static char *get_strsize(char *str, off_t *size)
 
 int parse_cmdline(struct io_check *check, int argc, char **argv)
 {
-	int opt;
+	int opt, fd;
 	char optstr[256];
 	char *endptr, *headptr;
+	struct stat stat;
 
 	if (argc <= 1) {
 		usage();
@@ -266,6 +267,62 @@ int parse_cmdline(struct io_check *check, int argc, char **argv)
 			exit(EXIT_FAILURE);
 		}
 	}
+
+	/* get logic block size and free space */
+	if (!strlen(check->target)) {
+		printf("Missing --target=? option\n");
+		exit(EXIT_FAILURE);
+	}
+
+	/* normal disk test */
+	fd = open(check->target, O_RDONLY);
+	if (fd < 0) {
+		perror("Open target failed");
+		return 1;
+	}
+	if (fstat(fd, &stat) < 0) {
+		perror("Get target stat failed");
+		return 1;
+	}
+	if (S_ISDIR(stat.st_mode)) {		// target is directory
+		/* TODO */
+	} else if (S_ISBLK(stat.st_mode)) {	// target is raw block device
+		check->is_rawdev = 1;
+
+		if (ioctl(fd, BLKGETSIZE, &check->free_space)) {
+			perror("Get free space failed");
+			return 1;
+		}
+		check->free_space *= 512;
+
+		if (ioctl(fd, BLKSSZGET, &check->blkdev_logicbz)) {
+			perror("Get block size failed");
+			return 1;
+		}
+
+		if ('\0' == check->data_directory[0])
+			getcwd(check->data_directory, PATH_MAX);
+	} else {
+		printf("ERR target: %s is neither a directory nor a raw block device\n", check->target);
+		return 1;
+	}
+	check->raw_blkdev_logicbz = check->blkdev_logicbz;
+	strcpy(check->context_filename, check->data_directory);
+	strcat(check->context_filename, "/iotest.context");
+	close(fd);
+
+	if (check->blkdev_logicbz % 512 || 0 == check->blkdev_logicbz / 512) {
+		printf("Invalid logbz: %d\n", check->blkdev_logicbz);
+		exit(EXIT_FAILURE);
+	}
+
+	/* check if has permmit to write data_directory */
+	fd = open(check->data_directory, O_RDONLY);
+	if (fd < 0) {
+		perror("Open data_directory failed");
+		return 1;
+	}
+	close(fd);
 
 	return 0;
 }
