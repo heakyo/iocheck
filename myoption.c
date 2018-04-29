@@ -196,6 +196,10 @@ int parse_cmdline(struct io_check *check, int argc, char **argv)
 			if ('/' == check->target[strlen(check->target) - 1])
 				check->target[strlen(check->target) - 1] = 0;
 			break;
+
+		case OPT_NUM_THREADS:
+			check->nthread = strtoul(optarg, NULL, 10);
+			break;
 		}
 	}
 

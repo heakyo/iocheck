@@ -14,6 +14,7 @@ struct io_check {
 	char id[64];
 
 	char target[PATH_MAX];
+	int nthread;
 
 	int running_count;
 	char running_char[4];
