@@ -182,6 +182,7 @@ int parse_cmdline(struct io_check *check, int argc, char **argv)
 {
 	int opt;
 	char optstr[256];
+	char *endptr;
 
 	if (argc <= 1) {
 		usage();
@@ -200,6 +201,26 @@ int parse_cmdline(struct io_check *check, int argc, char **argv)
 		case OPT_NUM_THREADS:
 			check->nthread = strtoul(optarg, NULL, 10);
 			break;
+
+		case OPT_BLOCK_SIZE:
+			if ('[' != optarg[0]) {
+				check->fix_bz = strtoul(optarg, &endptr, 10);
+				if ('k' == endptr[0] || 'K' == endptr[0])
+					check->fix_bz *= 1024;
+				else if ('m' == endptr[0] || 'M' == endptr[0])
+					check->fix_bz *= (1024 * 1024);
+
+				check->bz_method = FIXED_BZ;
+			}
+			break;
+
+		case OPT_HELP:
+			usage();
+			exit(0);
+
+		default:
+			usage();
+			exit(EXIT_FAILURE);
 		}
 	}
 
