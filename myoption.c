@@ -262,6 +262,22 @@ int parse_cmdline(struct io_check *check, int argc, char **argv)
 			check->skip_ck_memsize = 1;
 			break;
 
+		case OPT_DATA_DIRECTORY:
+			strcpy(check->data_directory, optarg);
+			if ('/' == check->data_directory[strlen(check->data_directory) - 1])
+				check->data_directory[strlen(check->data_directory) - 1] = 0;
+			break;
+
+		case OPT_OFFSET:
+			check->ck_goffset = strtoul(optarg, &endptr, 10);
+			if (*endptr == 'k' || *endptr == 'K')
+				check->ck_goffset *= 1024;
+			else if (*endptr == 'm' || *endptr == 'M')
+				check->ck_goffset *= (1024*1024);
+			else if (*endptr == 'g' || *endptr == 'G')
+				check->ck_goffset *= (1024*1024*1024);
+			break;
+
 		case OPT_HELP:
 			usage();
 			exit(0);
@@ -297,12 +313,12 @@ int parse_cmdline(struct io_check *check, int argc, char **argv)
 			perror("Get free space failed");
 			return 1;
 		}
-		check->free_space *= 512;
 
 		if (ioctl(fd, BLKSSZGET, &check->blkdev_logicbz)) {
 			perror("Get block size failed");
 			return 1;
 		}
+		check->free_space *= check->blkdev_logicbz;
 
 		if ('\0' == check->data_directory[0])
 			getcwd(check->data_directory, PATH_MAX);
@@ -311,6 +327,10 @@ int parse_cmdline(struct io_check *check, int argc, char **argv)
 		return 1;
 	}
 	check->raw_blkdev_logicbz = check->blkdev_logicbz;
+	if (check->ck_goffset % check->blkdev_logicbz) {
+		printf("option offset should be divided exactly by %d\n", check->blkdev_logicbz);
+		exit(EXIT_FAILURE);
+	}
 	strcpy(check->context_filename, check->data_directory);
 	strcat(check->context_filename, "/iotest.context");
 	close(fd);
@@ -354,9 +374,6 @@ int parse_cmdline(struct io_check *check, int argc, char **argv)
 	}
 
 	check->mb_datamem_needed = ((check->total_filesize / check->blkdev_logicbz) * sizeof(__u64)) / (1024 * 1024);
-	printf("mb_datamem_needed=%ldMB\n", check->mb_datamem_needed);
-	printf("uniq_filesize=%ld\n", check->uniq_filesize);
-	printf("total_filesize=%ld\n", check->total_filesize);
 
 #if 0
 	printf("rw_endure_way=%d rw_endure=%d\n", check->rw_endure_way, check->rw_endure);
@@ -370,6 +387,7 @@ int parse_cmdline(struct io_check *check, int argc, char **argv)
 	printf("fix_bz=%d min_bz=%d max_bz=%d\n",
 		check->fix_bz, check->min_bz, check->max_bz);
 	printf("uniq_filesize=%ld\n", check->uniq_filesize);
+	printf("total_filesize=%ld\n", check->total_filesize);
 	printf("each_filesize=");
 	for (i = 0; i < check->each_filenum; i++)
 		printf("%ld ", check->each_filesize[i]);
