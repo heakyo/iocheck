@@ -324,5 +324,10 @@ int parse_cmdline(struct io_check *check, int argc, char **argv)
 	}
 	close(fd);
 
+	if (check->nthread <= 0|| check->nthread > 256) {
+		printf("Missing or invalid --num-threads=? option %d, invalid is [1, 256]\n", check->nthread);
+		return 1;
+	}
+
 	return 0;
 }
