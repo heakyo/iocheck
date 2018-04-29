@@ -37,6 +37,7 @@ struct io_check {
 	int fix_bz;
 
 	off_t uniq_filesize;
+	off_t total_filesize;
 	char *automode;
 
 	int running_count;

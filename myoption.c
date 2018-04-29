@@ -329,5 +329,17 @@ int parse_cmdline(struct io_check *check, int argc, char **argv)
 		return 1;
 	}
 
+	if (0 != check->uniq_filesize) {	// uniq filesize for each file
+		check->uniq_filesize =
+			((check->uniq_filesize + (check->blkdev_logicbz - 1)) / check->blkdev_logicbz) * check->blkdev_logicbz;
+		if (0 == check->uniq_filesize) {
+			printf("Filesize is 0\n");
+			return 1;
+		}
+		check->total_filesize = check->uniq_filesize * check->nthread;
+	} else {				// each file has itself filesize
+		/* TODO */
+	}
+
 	return 0;
 }
