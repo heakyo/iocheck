@@ -43,6 +43,12 @@ struct io_check {
 	int running_count;
 	char running_char[4];
 
+	long mb_datamem_needed;
+
+	int skip_ck_memsize;
+	int pagesize;		// system pagesize
+	int mb_memory;		// system memory size in mb_memory
+
 	size_t thread_stacksize;
 };
 

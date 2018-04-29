@@ -258,6 +258,10 @@ int parse_cmdline(struct io_check *check, int argc, char **argv)
 			}
 			break;
 
+		case OPT_SKIP_CHECK_MEMSIZE:
+			check->skip_ck_memsize = 1;
+			break;
+
 		case OPT_HELP:
 			usage();
 			exit(0);
@@ -349,5 +353,27 @@ int parse_cmdline(struct io_check *check, int argc, char **argv)
 		/* TODO */
 	}
 
+	check->mb_datamem_needed = ((check->total_filesize / check->blkdev_logicbz) * sizeof(__u64)) / (1024 * 1024);
+	printf("mb_datamem_needed=%ldMB\n", check->mb_datamem_needed);
+	printf("uniq_filesize=%ld\n", check->uniq_filesize);
+	printf("total_filesize=%ld\n", check->total_filesize);
+
+#if 0
+	printf("rw_endure_way=%d rw_endure=%d\n", check->rw_endure_way, check->rw_endure);
+	printf("data_directory test file=%s\n", name);
+	printf("file min logicbz=%d\n", check->blkdev_logicbz);
+	printf("free_space=%ld\n", check->free_space);
+	printf("mb_datamem_needed=%ldMB\n", check->mb_datamem_needed);
+	printf("target=%s\n", check->target);
+	printf("data_directory=%s\n", check->data_directory);
+	printf("num-thread=%d\n", check->nthread);
+	printf("fix_bz=%d min_bz=%d max_bz=%d\n",
+		check->fix_bz, check->min_bz, check->max_bz);
+	printf("uniq_filesize=%ld\n", check->uniq_filesize);
+	printf("each_filesize=");
+	for (i = 0; i < check->each_filenum; i++)
+		printf("%ld ", check->each_filesize[i]);
+	printf("\n");
+#endif
 	return 0;
 }
