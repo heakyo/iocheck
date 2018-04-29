@@ -190,7 +190,13 @@ int parse_cmdline(struct io_check *check, int argc, char **argv)
 
 	get_optstr(lopts, optstr, sizeof(optstr));
 	while ((opt = getopt_long_only(argc, argv, optstr, lopts, NULL)) != -1) {
-
+		switch(opt) {
+		case OPT_TARGET:
+			strcpy(check->target, optarg);
+			if ('/' == check->target[strlen(check->target) - 1])
+				check->target[strlen(check->target) - 1] = 0;
+			break;
+		}
 	}
 
 	return 0;
