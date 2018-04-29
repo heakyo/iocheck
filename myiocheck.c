@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 {
 	struct io_check *check;
 	struct io_thread *thread;
-	int status, tr;
+	int status, tr, i;
 	off_t goffset;
 
 	srand48(time(NULL));
@@ -108,5 +108,34 @@ int main(int argc, char *argv[])
 		thread->duty_off = check->each_duty_off[tr];
 	}
 
+	printf("target=%s [%s]\n", check->target, check->is_rawdev ? "raw block device" : "directory");
+	printf("%s logical-block-size=%d\n",
+		check->is_rawdev ? "block device" : "filesystem", check->blkdev_logicbz);
+	printf("filesize=");
+	if (!check->each_filenum) {
+		printf("%s\n", human_size(check->uniq_filesize));
+	} else {
+		for (i = 0; i < check->each_filenum; i++)
+			printf("%s%s%s", (0 == i) ? "[" : "",
+				human_size(check->each_filesize[i]),
+				((check->each_filenum - 1) == i) ? "]\n" : ", ");
+	}
+	printf("total_filesize=%s\n", human_size(check->total_filesize));
+	printf("num-threads=%d\n", check->nthread);
+	printf("block-size=");
+	if (RANDOM_BZ == check->bz_method)
+		printf("[%d,%d]\n", check->min_bz, check->max_bz);
+	else
+		printf("%d\n", check->fix_bz);
+	printf("duty=");
+	for (i = 0; i < check->nthread; i++)
+		printf("%s%d:%d%s", (0 == i) ? "[" : "", check->each_duty_on[i], check->each_duty_off[i], ((check->nthread - 1) == i) ? "]\n" : ", ");
+	printf("memory-needed=%ldMB\n", check->mb_datamem_needed);
+	printf("fulldata-cmp=%s\n", check->fulldata_cmp ? "Yes" : "No");
+	printf("data-directory=%s\n", check->data_directory);
+	printf("offset=%ld\n", check->ck_goffset);
+	printf("runrandom=");
+	for (i = 0; i < check->nthread; i++)
+		printf("%02X%s", check->runrandom[i], (i == check->nthread-1) ? "\n" : ",");
 	return 0;
 }

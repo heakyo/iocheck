@@ -278,6 +278,10 @@ int parse_cmdline(struct io_check *check, int argc, char **argv)
 				check->ck_goffset *= (1024*1024*1024);
 			break;
 
+		case OPT_FULLDATA_CMP:
+			check->fulldata_cmp = 1;
+			break;
+
 		case OPT_HELP:
 			usage();
 			exit(0);

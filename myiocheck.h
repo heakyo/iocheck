@@ -116,10 +116,43 @@ struct io_check {
 	int each_duty_off[512];
 	int each_dutynum;
 
+	int fulldata_cmp;
 	size_t thread_stacksize;
 };
 
 /******************************************************************/
 int parse_cmdline(struct io_check *check, int argc, char **argv);
 
+static char size_buf[256];
+static inline char *human_size(off_t filesize)	// XXX: not thread-safe
+{
+	int n = 0;
+	char p[2] = {0, 0};
+
+	memset(size_buf, 0, sizeof(size_buf));
+
+	if (filesize >= (1024 * 1024 * 1024)) {
+		n += sprintf(size_buf + n, "%ldG", filesize / (1024 * 1024 * 1024));
+		filesize %= (1024 * 1024 * 1024);
+		p[0] = '.';
+	}
+
+	if (filesize >= (1024 * 1024)) {
+		n += sprintf(size_buf + n, "%s%ldM", p, filesize / (1024 * 1024));
+		filesize %= (1024 * 1024);
+		p[0] = '.';
+	}
+
+	if (filesize >= 1024) {
+		n += sprintf(size_buf + n, "%s%ldK", p, filesize / 1024);
+		filesize %= 1024;
+		p[0] = '.';
+	}
+
+	if (filesize)
+		n += sprintf(size_buf + n, "%s%ld", p, filesize);
+
+	assert(n < sizeof(size_buf));
+	return size_buf;
+}
 #endif
